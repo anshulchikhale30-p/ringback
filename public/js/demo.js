@@ -189,10 +189,10 @@
       if (biz && !biz.agent_ready) renderBusinessCard(state.scenario);
 
       state.token = t.token;
-      state.ws = new WebSocket(WS_URL + encodeURIComponent(t.token));
+      state.agentId = t.agent_id || null;
       state.inlineSession = t.inline_session || null;
-      state.usedInline = false;
-      openSocket(call, t.agent_id);
+      state.triedStored = false;
+      openSocket(call, state.agentId, true);
       hideOverlay();
     } catch (e) {
       hideOverlay();
@@ -257,11 +257,10 @@
         break;
 
       case "session.error":
-        const errCode = m.error && m.error.code;
-        if (errCode === "agent_not_found" && state.inlineSession && !state.usedInline) {
-          state.usedInline = true;
+        if (state.agentId && !state.triedStored) {
+          state.triedStored = true;
           try { if (state.ws) state.ws.close(); } catch (_e) { /* */ }
-          openSocket(state.call, null, true);
+          openSocket(state.call, state.agentId, false);
           return;
         }
         showOverlay("Session error", esc((m.error && m.error.message) || JSON.stringify(m)));
