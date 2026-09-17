@@ -54,6 +54,7 @@ def _arg(
     typ: str = "string",
     examples: list | None = None,
     enum: list | None = None,
+    pattern: str | None = None,
     required: bool = True,
 ) -> tuple[str, dict]:
     prop: dict = {"type": typ, "description": description}
@@ -61,6 +62,8 @@ def _arg(
         prop["examples"] = examples
     if enum:
         prop["enum"] = enum
+    if pattern:
+        prop["pattern"] = pattern
     return name, {"prop": prop, "required": required}
 
 
