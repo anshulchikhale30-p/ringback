@@ -177,15 +177,17 @@ def provision_agent(business: dict, force: bool = False) -> dict:
         keyterms=DOMAIN_KEYTERMS,
         tools=tools,
     )
-    # Newly created agents can take a few seconds to become usable by a WS
-    # session; confirm propagation before we hand an agent_id to the browser.
-    for _ in range(5):
+    # Newly created agents can take up to ~30s to become usable by a WS
+    # session. Confirm propagation before we hand an agent_id to the browser;
+    # if it's still building, raise so the caller retries instead of hitting
+    # agent_not_found mid-conversation.
+    for _ in range(10):
         try:
             aai.get_agent(agent["id"])
-            break
+            return store.upsert_business({**business, "agent_id": agent["id"], "provision_error": None})
         except Exception:
-            time.sleep(2)
-    return store.upsert_business({**business, "agent_id": agent["id"], "provision_error": None})
+            time.sleep(3)
+    raise RuntimeError("Agent created but still warming up — try the call back in ~15 seconds.")
 
 
 def seed_demo_data() -> None:
@@ -298,12 +300,23 @@ def create_business_agent(body: BusinessIn):
 def list_agent_status():
     out = []
     for b in store.list_businesses():
+        valid = None
+        lookup_error = None
+        if b.get("agent_id"):
+            try:
+                aai.get_agent(b["agent_id"])
+                valid = True
+            except Exception as exc:
+                valid = False
+                lookup_error = str(exc)[:200]
         out.append(
             {
                 "business_id": b["id"],
                 "name": b["name"],
                 "agent_id": b.get("agent_id"),
                 "ready": bool(b.get("agent_id")),
+                "agent_valid": valid,
+                "agent_lookup_error": lookup_error,
                 "provision_error": b.get("provision_error"),
             }
         )
