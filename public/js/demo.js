@@ -380,7 +380,7 @@
   async function refreshDash() {
     try {
       const d = await api("/api/dashboard");
-      $("m-bookings").textContent = d.bookings;
+      $("m-orders").textContent = d.orders;
       $("m-quotes").textContent = d.quotes;
       $("m-calls").textContent = d.calls_handled;
       $("m-revenue").textContent = "$" + (d.revenue_saved || 0).toLocaleString();
@@ -430,7 +430,7 @@
         '<span class="badge">' + esc(c.intent || "call") + "</span>" +
         '<span class="sent ' + sentCls + '">&#9679; ' + esc(sent) + "</span>" +
         (c.needs_human ? '<span class="badge" style="background:rgba(248,113,113,0.12);color:var(--bad);border-color:rgba(248,113,113,0.3)">needs human</span>' : "") +
-        (c.booking_id ? '<span class="tool-chip">✓ booked ' + esc(c.booking_id) + "</span>" : "") +
+        (c.order_id ? '<span class="tool-chip">✓ order ' + esc(c.order_id) + "</span>" : "") +
         (c.quote_id ? '<span class="tool-chip">✓ quote ' + esc(c.quote_id) + "</span>" : "") +
         "</div>" +
         (actions ? "<ul>" + actions + "</ul>" : "") +
@@ -447,7 +447,7 @@
     if (stale) wrap.innerHTML = "";
     const el = document.createElement("div");
     el.className = "feed-item";
-    const COLORS = { missed: "var(--warn)", callback: "var(--accent-1)", connect: "var(--good)", escalation: "var(--bad)", booking: "var(--good)", quote: "var(--warn)", note: "var(--muted)" };
+    const COLORS = { missed: "var(--warn)", callback: "var(--accent-1)", connect: "var(--good)", escalation: "var(--bad)", order: "var(--good)", quote: "var(--warn)", note: "var(--muted)" };
     el.innerHTML = '<span class="fi-dot" style="background:' + (COLORS[fake.type] || "var(--accent-1)") + '"></span><div><span class="fi-time">' + fmtTime(fake.t) + "</span><strong>" + esc(fake.title) + "</strong>" + (fake.detail ? "<p>" + esc(fake.detail) + "</p>" : "") + "</div>";
     wrap.insertBefore(el, wrap.firstChild);
   }

@@ -26,7 +26,7 @@ class Store:
         self.data: dict[str, Any] = {
             "businesses": {},
             "calls": {},
-            "bookings": [],
+            "orders": [],
             "quotes": [],
             "tasks": [],
             "active_call_by_business": {},
@@ -44,7 +44,7 @@ class Store:
                 {
                     "businesses": {},
                     "calls": {},
-                    "bookings": [],
+                    "orders": [],
                     "quotes": [],
                     "tasks": [],
                     "active_call_by_business": {},
@@ -101,7 +101,7 @@ class Store:
                 "intent": None,
                 "action_items": [],
                 "needs_human": False,
-                "booking_id": None,
+                "order_id": None,
                 "quote_id": None,
                 "aa_session_id": None,
                 **fields,
@@ -173,25 +173,25 @@ class Store:
             del self.data["active_call_by_business"][bid]
 
     # ---- derived records ----------------------------------------------------
-    def create_booking(self, call: dict, **fields: Any) -> dict:
-        booking_id = self.new_id("bk")
+    def create_order(self, call: dict, **fields: Any) -> dict:
+        order_id = self.new_id("ord")
         with self.lock:
-            booking = {
-                "id": booking_id,
+            order = {
+                "id": order_id,
                 "call_id": call["id"],
                 "business_id": call.get("business_id"),
                 "created_at": _now(),
                 "status": "confirmed",
                 **fields,
             }
-            self.data["bookings"].append(booking)
+            self.data["orders"].append(order)
             existing_call = self.data["calls"].get(call["id"])
             if existing_call is not None:
-                existing_call["booking_id"] = booking_id
+                existing_call["order_id"] = order_id
             self._save()
-            return dict(booking)
+            return dict(order)
 
-    def create_quote(self, call: dict, **fields: Any) -> dict:
+    def create_price_quote(self, call: dict, **fields: Any) -> dict:
         quote_id = self.new_id("qt")
         with self.lock:
             quote = {
@@ -231,13 +231,13 @@ class Store:
         calls.sort(key=lambda c: c.get("created_at") or "", reverse=True)
         return calls[:limit]
 
-    def list_bookings(self, limit: int = 20) -> list[dict]:
+    def list_orders(self, limit: int = 20) -> list[dict]:
         with self.lock:
-            b = [dict(x) for x in self.data["bookings"]]
-        b.sort(key=lambda x: x.get("created_at") or "", reverse=True)
-        return b[:limit]
+            o = [dict(x) for x in self.data["orders"]]
+        o.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+        return o[:limit]
 
-    def list_quotes(self, limit: int = 20) -> list[dict]:
+    def list_price_quotes(self, limit: int = 20) -> list[dict]:
         with self.lock:
             q = [dict(x) for x in self.data["quotes"]]
         q.sort(key=lambda x: x.get("created_at") or "", reverse=True)
@@ -252,7 +252,7 @@ class Store:
     def dashboard_metrics(self, avg_call_value: int = 125) -> dict:
         with self.lock:
             calls = list(self.data["calls"].values())
-            bookings = list(self.data["bookings"])
+            orders = list(self.data["orders"])
             quotes = list(self.data["quotes"])
             tasks = [t for t in self.data["tasks"] if t.get("status") == "open"]
         completed = [c for c in calls if c.get("status") in ("completed", "escalated")]
@@ -263,7 +263,7 @@ class Store:
         return {
             "calls_handled": len(completed),
             "calls_total": len(calls),
-            "bookings": len(bookings),
+            "orders": len(orders),
             "quotes": len(quotes),
             "open_tasks": len(tasks),
             "positive_sentiment": positive,

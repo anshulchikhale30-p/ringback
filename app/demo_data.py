@@ -3,137 +3,139 @@
 The pitch: any SMB can get a calling voice agent in ~2 minutes — enter your
 business info, and RingBack configures a stored AssemblyAI Voice Agent (with
 tools + keyterms) automatically. These seeds make that real for the demo.
+
+Demo persona: FRESH PRODUCE DISTRIBUTION / wholesale order desks. Missed-call
+recovery is worth ~$126K/yr per SMB, and a $119B US wholesaling industry
+(a highly fragmented one — no player holds more than 5% share) runs on the
+phone. That's the story.
 """
 
-VOICE_SYSTEM_PROMPT = """You are {name}'s reception desk — a warm, human-sounding voice agent that ANSWERS CALLS and gets things done.
+VOICE_SYSTEM_PROMPT = """You are {name}'s ORDER DESK — a sharp, human-sounding voice agent that ANSWERS CALLS and takes wholesale produce orders.
 
-PERSONALITY: Friendly, concise, professional. Speak like a real front-desk person. Keep every reply to 1-3 short sentences. Do NOT read long lists aloud — summarize, then ask one clear question.
+PERSONALITY: Brisk, friendly, professional — like a veteran distributor rep who knows their product. Keep every reply to 1-3 short sentences. Do NOT read long lists aloud — summarize, then ask one clear question.
 
 YOUR JOB:
 1. Greet the caller (the greeting is spoken automatically), then listen.
-2. Use your tools to do REAL work for the caller - never invent information.
-3. Confirm before you book or cancel. Read back dates/times. Say the confirmation number out loud clearly.
-4. If the caller is angry, wants to cancel, refund, complain, asks for a supervisor/owner/lawyer, or the issue is complex: apologize sincerely, then call escalate_to_human with the reason. Do NOT try to talk frustrated callers out of it.
-5. At the end of a resolved call, say goodbye warmly and mention that {name} looks forward to their visit.
-6. If a caller asks about services, hours, or prices -> call get_business_info first, then answer from the tool result. NEVER guess prices.
+2. Use your tools to do REAL work - never invent prices, stock, or delivery info. Never guess availability.
+3. Confirm before you place or cancel an order. Read back items, quantities (pounds/cases/flats), and delivery day. Say the confirmation number out loud clearly.
+4. If the caller has a damaged or short delivery, wants credit/refund, or asks for a supervisor/produce manager/owner: sympathize briefly, then call escalate_to_human with the reason. Do NOT try to talk frustrated callers out of it.
+5. At the end of a resolved call, say goodbye warmly and confirm their delivery window for {name}.
+6. If a caller asks about catalog, prices, or delivery schedule -> call get_business_info first, then answer from the tool result. NEVER guess prices.
 7. Tool failures: apologize and offer to take a message.
 
-Business: {name}. Services: {services}. Hours: {hours}. Address: {address}. {service_note}
+Business: {name}. Catalog & hours: {services}. {hours} @ {address}. {service_note}
 Focus keywords: {keywords}"""
 
 
 BUSINESS_SEEDS = [
     {
-        "id": "bloom_dental",
-        "name": "Bloom Dental",
-        "tagline": "Modern family dentistry in Austin",
-        "address": "412 Cedar Park Blvd, Austin, TX",
-        "hours": "Monday-Friday 8 AM-5 PM, Saturday 9 AM-1 PM",
-        "services": ["cleaning", "exam", "whitening", "filling", "emergency visit"],
+        "id": "greenroot",
+        "name": "GreenRoot Produce Co.",
+        "tagline": "Wholesale fresh produce for restaurants & caterers",
+        "address": "Riverside Terminal Market, Bays 12-18, Austin, TX",
+        "hours": "Order desk Mon-Sat 4 AM-2 PM; orders in by 2 PM deliver next morning",
+        "services": [
+            "romaine", "heirloom tomatoes", "hass avocados", "strawberries",
+            "cucumbers", "red onions", "mixed greens", "cantaloupe",
+        ],
         "service_prices": {
-            "cleaning": "$120",
-            "exam": "$95",
-            "whitening": "$250",
-            "filling": "$180",
-            "emergency visit": "$150",
+            "romaine": "$34/case (24 heads)",
+            "heirloom tomatoes": "$28/box (25 lb)",
+            "hass avocados": "$42/case (48 count)",
+            "strawberries": "$16/flat (12 pints)",
+            "mixed greens": "$26/tote (10 lb)",
         },
-        "service_note": "New patients get a free first exam.",
-        "greeting": "Hi, thanks for calling Bloom Dental. This is our virtual receptionist — how can I help you today?",
+        "service_note": "Standing restaurant accounts get case pricing off the weekly sheet.",
+        "greeting": "Thanks for calling GreenRoot Produce — this is our order desk. What are we pulling for you this morning?",
     },
     {
-        "id": "fixit_plumbing",
-        "name": "FixIt Plumbing",
-        "tagline": "Same-day service, done right",
-        "address": "88 Marigold Ave, Austin, TX",
-        "hours": "Monday-Saturday 7 AM-7 PM, 24/7 emergencies",
-        "services": ["water heater", "drain cleaning", "leak repair", "faucet repair", "bathroom remodel"],
+        "id": "harvest_line",
+        "name": "Harvest Line Foods",
+        "tagline": "Organic & specialty wholesale, grower-direct",
+        "address": "104 Dripping Springs Rd, Austin, TX",
+        "hours": "Order desk Mon-Fri 5 AM-3 PM; next-morning drops citywide",
+        "services": [
+            "organic kale", "baby spinach", "blueberries", "heirloom tomatoes",
+            "organic carrots", "fennel", "figs", "microgreens",
+        ],
         "service_prices": {
-            "water heater": "$450 flat",
-            "drain cleaning": "$129",
-            "leak repair": "$95-180",
-            "faucet repair": "$85",
+            "organic kale": "$22/case (12 bunches)",
+            "baby spinach": "$28/tote (10 lb)",
+            "blueberries": "$38/case (8 pints)",
+            "heirloom tomatoes": "$32/box (20 lb)",
+            "microgreens": "$14/tray (4 oz packs)",
         },
-        "service_note": "Friendly reminder: we offer a 15% discount for seniors on all repairs.",
-        "greeting": "Hey hey, you've reached FixIt Plumbing. This is our virtual receptionist — what can we fix up for you today?",
+        "service_note": "Wholesale pricing on all orders over $300.",
+        "greeting": "You've reached Harvest Line Foods — our order desk is live. What are you looking to stock today?",
     },
     {
-        "id": "terra_cafe",
-        "name": "Terra Café",
-        "tagline": "Neighborhood café + catering in downtown Austin",
-        "address": "90 Congress Ave, Austin, TX",
-        "hours": "Daily 7 AM-6 PM",
-        "services": ["catering", "pickup orders", "cakes", "corporate coffee"],
+        "id": "coastal_fresh",
+        "name": "Coastal Fresh Market",
+        "tagline": "Daily drops for cafes, delis & small grocers",
+        "address": "31 Barton Creek Sq, Austin, TX",
+        "hours": "Order desk Sun-Fri 4 AM-1 PM; same-week delivery slots",
+        "services": [
+            "green beans", "navel oranges", "lemons", "bell peppers",
+            "grape tomatoes", "bananas", "red cabbage", "dill",
+        ],
         "service_prices": {
-            "boxed lunch": "$14/person",
-            "catering": "from $12/person",
-            "signature cake": "from $45",
+            "green beans": "$38/case (20 lb)",
+            "navel oranges": "$30/box (48 count)",
+            "lemons": "$33/box (48 count)",
+            "bell peppers": "$29/case (25 lb)",
         },
-        "service_note": "Catering orders need 48 hours notice.",
-        "greeting": "Thanks for calling Terra Café — this is our virtual host. How can I help?",
-    },
-    {
-        "id": "summit_auto",
-        "name": "Summit Auto Repair",
-        "tagline": "Honest, warranty-backed auto repair",
-        "address": "2205 Lancewood Dr, Austin, TX",
-        "hours": "Monday-Friday 7:30 AM-6 PM, Saturday 9 AM-2 PM",
-        "services": ["brake service", "oil change", "engine diagnostics", "tire rotation", "AC repair"],
-        "service_prices": {
-            "brake service": "$220",
-            "oil change": "$45",
-            "engine diagnostics": "$110",
-            "tire rotation": "$35",
-        },
-        "service_note": "All work comes with a 12-month / 12,000-mile warranty.",
-        "greeting": "Thanks for calling Summit Auto Repair, this is our virtual service desk. How can we help you today?",
+        "service_note": "Case discounts start at 10 units.",
+        "greeting": "Thanks for calling Coastal Fresh Market — our order line's open. What can we add to your delivery?",
     },
 ]
 
 # Scenarios drive the "missed call" simulator on the demo page.
 DEMO_SCENARIOS = [
     {
-        "id": "s_booking",
-        "title": "Book / reschedule an appointment",
-        "business_id": "bloom_dental",
-        "customer_name": "Sarah",
-        "phone": "+1 (512) 555-0141",
-        "description": "Your cleaning got cancelled by the weather — you're calling to reschedule for this Thursday morning.",
-        "first_line": "Hi, I missed a call from you folks — I need to reschedule my cleaning for Thursday morning if possible.",
+        "id": "s_order",
+        "title": "Place tomorrow's wholesale order",
+        "business_id": "greenroot",
+        "customer_name": "Chef Sofia",
+        "phone": "+1 (512) 555-0147",
+        "description": "You run the kitchen at a downtown bistro. You missed GreenRoot's nightly call — now place tomorrow's order: 50 lb romaine, 3 cases hass avocados, 6 flats strawberries.",
+        "first_line": "Hi, I missed your call — this is Chef Sofia at Bistro Verde. I need to order for tomorrow morning: 50 pounds of romaine, three cases of hass avocados, and six flats of strawberries.",
+    },
+    {
+        "id": "s_status",
+        "title": "Track a delivery on the truck",
+        "business_id": "coastal_fresh",
+        "customer_name": "Danny",
+        "phone": "+1 (512) 555-0133",
+        "description": "Your café's order CF-1988 was supposed to drop at 6 AM. Check if it's still on the truck or out for delivery.",
+        "first_line": "Hey, this is Danny from the Red Door Café — I got your missed-call ping. I'm checking on order CF-1988, the one that was supposed to drop at six.",
     },
     {
         "id": "s_quote",
-        "title": "Ask for a quote",
-        "business_id": "fixit_plumbing",
-        "customer_name": "Mike",
-        "phone": "+1 (512) 555-0187",
-        "description": "Your 50-gallon water heater is leaking. Call and ask for a quote and availability to replace it.",
-        "first_line": "Hey, I got a missed-call notification. My water heater's leaking — I'd like a quote on replacing it with a 50 gallon one.",
-    },
-    {
-        "id": "s_order",
-        "title": "Check an order",
-        "business_id": "terra_cafe",
-        "customer_name": "Priya",
-        "phone": "+1 (512) 555-0129",
-        "description": "You placed a catering order (TB-2045) for an office lunch and want to know when it's arriving.",
-        "first_line": "Hi, this is Priya — I just called earlier? I wanted to check on my catering order, TB-2045.",
+        "title": "Get a bulk wholesale quote",
+        "business_id": "harvest_line",
+        "customer_name": "Marcus",
+        "phone": "+1 (512) 555-0402",
+        "description": "Your 6-location group wants to standardize on organic produce. Ask for a wholesale quote on heirloom tomatoes + blueberries at weekly volume.",
+        "first_line": "Yeah hi — Marcus Bell, FP Hospitality. I missed your call. We run six kitchens and we want a wholesale quote on heirloom tomatoes and blueberries, weekly volume.",
     },
     {
         "id": "s_escalation",
-        "title": "Complaint — must reach a human",
-        "business_id": "summit_auto",
-        "customer_name": "Derrick",
-        "phone": "+1 (512) 555-0110",
-        "description": "Your brakes were just fixed but they're squealing again. You're frustrated and want to cancel the service and speak to the owner.",
-        "first_line": "Yeah, I'm really unhappy. You 'fixed' my brakes two weeks ago and they're squealing again. I want to cancel the service and speak to the owner — now.",
+        "title": "Damaged delivery — need a credit",
+        "business_id": "greenroot",
+        "customer_name": "Rosa",
+        "phone": "+1 (512) 555-0198",
+        "description": "This morning's crate of strawberries arrived bruised and half the avocados are rotten. You want a credit and to speak to the produce manager.",
+        "first_line": "This is Rosa from Casa Luna — I need to talk to someone. The strawberry crate you dropped was bruised and half the avocados are rotten. I want a credit and I need to speak to the produce manager.",
     },
 ]
 
 # A keyword list tuned to the demo intents (improves streaming transcription).
 DOMAIN_KEYTERMS = [
-    "book", "reschedule", "appointment", "cleaning",
-    "quote", "estimate", "water heater", "full breakdown",
-    "catering", "order", "TB-2045",
-    "cancel", "refund", "supervisor", "owner", "warranty", "complaint",
-    "availability", "pricing", "hours", "emergency",
+    "order", "orders", "delivery", "drop", "truck", "morning",
+    "romaine", "avocados", "strawberries", "blueberries", "tomatoes",
+    "cases", "crates", "flats", "pounds", "lb", "cases",
+    "wholesale", "quote", "pricing", "volume", "account",
+    "damaged", "bruised", "rotten", "short", "credit", "refund", "manager",
+    "GR-", "CF-", "HL-", "cancel",
+    "availability", "catalog", "hours", "delivery window",
 ]

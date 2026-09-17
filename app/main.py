@@ -1,9 +1,10 @@
 """RingBack AI — main FastAPI application.
 
 An AssemblyAI Voice Agent that calls small-business missed callers back and
-actually gets things done (bookings, quotes, order lookups, human escalation)
-through server-side HTTP tools, then feeds every outcome into a live owner
-dashboard powered by AssemblyAI session history + LLM Gateway analytics.
+actually gets things done (wholesale orders, stock checks, price quotes,
+delivery tracking, human escalation) through server-side HTTP tools, then feeds
+every outcome into a live owner dashboard powered by AssemblyAI session history
++ LLM Gateway analytics.
 
 Server route map (all API routes are defined BEFORE the static mount):
   /api/*              - the JSON API
@@ -80,53 +81,52 @@ def business_toolset(business_id: str) -> list[dict]:
             business_id,
         ),
         _tool(
-            "check_availability",
-            "Check open appointment or visit time slots. Use when a caller wants to book, schedule, or reschedule.",
+            "check_stock",
+            "Check same-day stock and today's market price for an item on the produce sheet. Call BEFORE confirming any availability or price — never guess.",
             business_id,
             _build_params(
-                _arg("service", "Service the caller wants", enum=["cleaning", "exam", "whitening", "repair", "water heater", "order", "catering"], required=False),
-                _arg("date", "Preferred day", examples=["tomorrow"], required=False),
+                _arg("item", "Item to check (e.g., romaine, avocados, strawberries)", examples=["heirloom tomatoes"]),
             ),
         ),
         _tool(
-            "book_appointment",
-            "Book an appointment and return a confirmation number. Confirm the service, date, and time with the caller out loud first, then call this.",
-            business_id,
-            _build_params(
-                _arg("name", "Caller's full name"),
-                _arg("service", "Service being booked"),
-                _arg("date", "Booking date", examples=["Thursday"]),
-                _arg("time", "Booking time", examples=["10:30 AM"]),
-            ),
-        ),
-        _tool(
-            "create_quote",
-            "Create a quote / estimate request for a product or service. Logs details and queues a human estimate. Use for repair quotes, catering quotes, etc.",
+            "place_order",
+            "Place a wholesale produce order and return a confirmation number. Confirm items, quantities, and the delivery window with the caller out loud first, then call this.",
             business_id,
             _build_params(
                 _arg("name", "Caller's name"),
-                _arg("description", "What needs to be quoted", examples=["replace 50 gallon water heater"]),
+                _arg("items", "Items and quantities (e.g., '50 lb romaine, 3 cases avocados')"),
+                _arg("delivery_time", "Delivery window", examples=["tomorrow morning"]),
+            ),
+        ),
+        _tool(
+            "get_pricing_quote",
+            "Create a wholesale / bulk pricing quote request for a restaurant group, caterer, or store. Logs details and queues a pricing sheet. Use for volume pricing, case quotes, weekly orders.",
+            business_id,
+            _build_params(
+                _arg("name", "Caller's name"),
+                _arg("items", "What needs pricing (e.g., 'heirloom tomatoes + blueberries')"),
+                _arg("volume", "Order volume or account size", examples=["6 locations, weekly"], required=False),
                 _arg("phone", "Caller's callback number", required=False),
             ),
         ),
         _tool(
             "check_order",
-            "Check the status of an existing order (catering, parts, pickup). Use when a caller references an order number.",
+            "Check the status of a delivery order reference number. Use when a caller references an order id on their invoice.",
             business_id,
-            _build_params(_arg("order_id", "The order reference number", examples=["TB-2045"], pattern="[A-Z]{2}-\\d{4}")),
+            _build_params(_arg("order_id", "The order reference number", examples=["GR-2045"], pattern="[A-Z]{2}-\\d{4}")),
         ),
         _tool(
-            "cancel_appointment",
-            "Cancel an existing appointment. Only call after confirming with the caller and restating the date.",
+            "cancel_order",
+            "Cancel an existing produce order before it leaves the loading dock. Only call after confirming with the caller and restating items and delivery window.",
             business_id,
             _build_params(
                 _arg("name", "Caller's name"),
-                _arg("date", "Date of the appointment being cancelled", required=False),
+                _arg("order_id", "The order reference number", examples=["GR-2045"], required=False),
             ),
         ),
         _tool(
             "escalate_to_human",
-            "Flag the call as URGENT and queue a human callback. MUST use for: complaints, cancellations, refunds, requests for supervisor/owner/lawyer, legal threats, emergencies, or anything complex or emotional.",
+            "Flag the call as URGENT and queue a manager callback. MUST use for: damaged or short deliveries, credit/refund requests, complaints about produce quality, requests for supervisor/produce manager/owner, legal threats, or anything complex or emotional.",
             business_id,
             _build_params(
                 _arg("reason", "One-sentence summary of why a human is needed"),
@@ -434,9 +434,9 @@ def dashboard():
     return store.dashboard_metrics(avg_call_value=settings.avg_call_value)
 
 
-@app.get("/api/bookings")
-def bookings(limit: int = 20):
-    return {"bookings": store.list_bookings(limit)}
+@app.get("/api/orders")
+def orders(limit: int = 20):
+    return {"orders": store.list_orders(limit)}
 
 
 @app.get("/api/quotes")
