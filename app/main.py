@@ -183,8 +183,12 @@ def provision_agent(business: dict, force: bool = False) -> dict:
     # agent_not_found mid-conversation.
     for _ in range(10):
         try:
-            aai.get_agent(agent["id"])
-            return store.upsert_business({**business, "agent_id": agent["id"], "provision_error": None})
+            confirmed = aai.get_agent(agent["id"])
+            # The WS connects with the id the platform reports on the record
+            # (docs: response `id` = the agent_id you connect with). Re-anchor
+            # to that; create/get may surface different internal ids.
+            canonical = confirmed.get("id") or (confirmed.get("agent") or {}).get("id") or agent["id"]
+            return store.upsert_business({**business, "agent_id": canonical, "provision_error": None})
         except Exception:
             time.sleep(3)
     raise RuntimeError("Agent created but still warming up — try the call back in ~15 seconds.")
@@ -296,15 +300,39 @@ def create_business_agent(body: BusinessIn):
     return {"business_id": business_id, "agent_id": updated.get("agent_id"), "status": "updated"}
 
 
+def _canonical_agent_id(business: dict, record: dict) -> str:
+    """The WS connects with the id the platform reports on the record
+    (docs: response `id` = the agent_id you connect with). Prefer that over
+    whatever create/get surfaced earlier; the APIs may expose internal ids."""
+    return record.get("id") or (record.get("agent") or {}).get("id") or business.get("agent_id")
+
+
+def ensure_canonical_agent_id(business: dict) -> str | None:
+    """Fetch the stored agent's record and re-anchor the business to the
+    platform-reported id if it drifted (auto-heal for WS agent_not_found)."""
+    agent_id = business.get("agent_id")
+    if not agent_id:
+        return None
+    try:
+        record = aai.get_agent(agent_id)
+    except Exception:
+        return agent_id
+    canonical = _canonical_agent_id(business, record)
+    if canonical != agent_id:
+        business = store.upsert_business({**business, "agent_id": canonical, "provision_error": None})
+    return canonical
+
+
 @app.get("/api/agents")
 def list_agent_status():
     out = []
     for b in store.list_businesses():
         valid = None
         lookup_error = None
+        record = {}
         if b.get("agent_id"):
             try:
-                aai.get_agent(b["agent_id"])
+                record = aai.get_agent(b["agent_id"])
                 valid = True
             except Exception as exc:
                 valid = False
@@ -313,9 +341,14 @@ def list_agent_status():
             {
                 "business_id": b["id"],
                 "name": b["name"],
-                "agent_id": b.get("agent_id"),
+                "agent_id": ensure_canonical_agent_id(b),
                 "ready": bool(b.get("agent_id")),
                 "agent_valid": valid,
+                "agent_record": {
+                    "record_id": record.get("id"),
+                    "record_agent_id": record.get("agent_id"),
+                    "record_nested_id": (record.get("agent") or {}).get("id"),
+                },
                 "agent_lookup_error": lookup_error,
                 "provision_error": b.get("provision_error"),
             }
@@ -350,6 +383,8 @@ def mint_voice_token(body: TokenIn):
             provision_agent(business)
         except Exception as exc:
             raise HTTPException(status_code=502, detail=f"Agent not provisioned: {exc}") from exc
+    else:
+        ensure_canonical_agent_id(business)
     token = aai.mint_token(
         expires_in_seconds=settings.token_ttl_seconds,
         max_session_duration_seconds=settings.max_session_seconds,
