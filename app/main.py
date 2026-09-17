@@ -34,6 +34,7 @@ from app.tools import router as tools_router
 # --------------------------------------------------------------------------
 def _tool(name: str, description: str, business_id: str, parameters: dict | None = None) -> dict:
     tool = {
+        "type": "function",
         "name": name,
         "description": description,
         "parameters": parameters or {"type": "object", "properties": {}},
