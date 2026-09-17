@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RingBack AI — Live Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <nav class="nav">
+      <div class="brand"><span class="dot"></span>RingBack<small>missed-call recovery, on autopilot</small></div>
+      <div class="nav-links">
+        <a href="/">Product</a>
+        <a href="#demo">Demo</a>
+        <span class="badge">Live · AssemblyAI Voice Agent</span>
+      </div>
+    </nav>
+
+    <div class="demo-shell" id="demo">
+      <!-- LEFT: simulator -->
+      <section class="panel">
+        <header>
+          <h3>Missed call simulator</h3>
+          <small>watch it recover</small>
+        </header>
+        <div class="body">
+          <p class="small" style="margin-bottom:12px">Pick a missed call, then read the caller's opening line into your mic. RingBack calls back and does the work.</p>
+          <div id="scenario-list"></div>
+          <div class="business-card" id="business-card" style="background:linear-gradient(170deg,var(--panel-2),var(--bg-2));border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;margin:8px 0 14px">
+            <b id="biz-name" class="small">—</b>
+            <div id="biz-meta" class="small" style="color:var(--muted);font-size:12px;margin-top:4px"></div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button id="btn-start" class="btn btn-primary" style="flex:1">&#128222; Call back</button>
+            <button id="btn-end" class="btn btn-danger" disabled>End call</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CENTER: phone call -->
+      <section class="panel">
+        <header>
+          <h3>Call in progress</h3>
+          <small>voice agent · live</small>
+        </header>
+        <div class="body" style="gap:10px;display:flex;flex-direction:column">
+          <div class="phone">
+            <div class="phone-head">
+              <div class="caller">
+                <div class="avatar" id="caller-avatar">?</div>
+                <div><b id="caller-name">—</b><span id="caller-phone">—</span></div>
+              </div>
+              <span id="status-pill" class="status-pill">idle</span>
+            </div>
+            <div class="rings" id="rings"><div class="ring"><div class="pulse-dot"></div></div></div>
+            <div class="transcript" id="transcript">
+              <div class="muted small" id="transcript-empty">Start a call to begin. Wear headphones and allow microphone access.</div>
+            </div>
+            <div class="mic-hint" id="mic-hint">Mic level <b id="mic-lvl">0%</b></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: owner dashboard -->
+      <section class="panel">
+        <header>
+          <h3>Owner dashboard</h3>
+          <small id="dash-business">real-time</small>
+        </header>
+        <div class="body">
+          <div class="metrics">
+            <div class="metric"><b id="m-bookings">0</b><span>Bookings</span></div>
+            <div class="metric"><b id="m-quotes">0</b><span>Quotes</span></div>
+            <div class="metric"><b id="m-calls">0</b><span>Calls handled</span></div>
+            <div class="metric"><b id="m-revenue">$0</b><span>Revenue saved</span></div>
+          </div>
+          <div class="small" style="font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Live events</div>
+          <div class="feed" id="feed">
+            <div class="muted small">No activity yet.</div>
+          </div>
+          <div id="summary-wrap"></div>
+          <div class="small" style="margin-top:14px">
+            <a href="#aa-session" id="aa-session-link" class="hidden">Open AssemblyAI session record &rarr;</a>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <span>Built for the AssemblyAI Voice Agent Hackathon · Voice Agent API + LLM Gateway + Session History</span>
+      <span id="aa-status">checking API status…</span>
+    </footer>
+  </div>
+
+  <div class="overlay" id="overlay" style="display:none">
+    <div class="box">
+      <div class="spinner"></div>
+      <b id="overlay-title">Connecting…</b>
+      <p class="small" id="overlay-sub" style="margin-top:8px;color:var(--muted)"></p>
+    </div>
+  </div>
+
+  <script src="/js/demo.js"></script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RingBack AI — Never miss revenue again</title>
+  <meta name="description" content="RingBack AI answers the calls your business missed. A voice agent powered by AssemblyAI calls back within seconds and actually gets things done — booking, quoting, order lookups, human escalation — while the owner watches everything live." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <nav class="nav">
+      <div class="brand"><span class="dot"></span>RingBack<small>missed-call recovery, on autopilot</small></div>
+      <div class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#tech">Tech</a>
+        <a href="#value">Business case</a>
+        <a class="btn btn-primary btn-sm" href="/demo">&#128222; Try the live demo</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <span class="badge">Winner recipe · real business process automation</span>
+      <h1>Your business just missed a call.<br /><span class="grad">RingBack already picked it up.</span></h1>
+      <p class="sub">
+        Small businesses miss <b>1 in 5 inbound calls</b> — and each one is a customer
+        who calls your competitor next. RingBack calls missed callers back in seconds,
+        <b>does the work</b> (bookings, quotes, order lookups, escalation), and hands the owner
+        a finished summary plus a live dashboard. Built end-to-end on
+        <b>AssemblyAI</b> voice infrastructure.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="/demo">&#128222; Call the demo now</a>
+        <a class="btn btn-ghost" href="#how">See how it works</a>
+      </div>
+      <div class="stat-strip">
+        <div class="stat"><b>1 in 5</b><span>inbound calls missed by small businesses every day</span></div>
+        <div class="stat"><b>$125+</b><span>average revenue lost per missed call</span></div>
+        <div class="stat"><b>3.2s</b><span>from missed call to RingBack dialing your customer</span></div>
+      </div>
+    </header>
+
+    <section class="section" id="how">
+      <div class="head">
+        <h2>From missed call to money,<br />with zero staff effort</h2>
+        <p>Same flow for a dentist, a plumber, a café or an auto shop. Configure once — RingBack provisions a dedicated AssemblyAI voice agent per business.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="num">STEP 01</div>
+          <h3>A call goes unanswered</h3>
+          <p>The line rings 12 seconds and drops. RingBack flags the missed call instantly and queues a callback before the customer dials your competitor.</p>
+        </div>
+        <div class="step">
+          <div class="num">STEP 02</div>
+          <h3>RingBack calls back &amp; does the work</h3>
+          <p>A natural voice agent greets the caller, understands them in real time, and calls real tools: books appointments, creates quotes, checks orders, and escorts angry callers to a human — audibly confirmations included.</p>
+        </div>
+        <div class="step">
+          <div class="num">STEP 03</div>
+          <h3>The owner sees everything</h3>
+          <p>Live events stream to the owner dashboard while the call runs. When it ends: full transcript, AI summary, sentiment, intent, action items, booking/quote records, and a link to the AssemblyAI session recording.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="tech">
+      <div class="head">
+        <h2>Deep on the AssemblyAI stack — not a chatbot wrapper</h2>
+        <p>The sponsor's entire voice platform is the product, not an afterthought.</p>
+      </div>
+      <div class="tech-grid">
+        <div class="tech">
+          <div class="icon">🎙️</div>
+          <div>
+            <h3>Voice Agent API</h3>
+            <p>One WebSocket = real-time speech-to-speech with turn detection, barge-in, keyterms biasing, and <b>server-side HTTP tools</b> that our app answers with real bookings and quotes — no STT/LLM/TTS stack to stitch.</p>
+          </div>
+        </div>
+        <div class="tech">
+          <div class="icon">🧠</div>
+          <div>
+            <h3>LLM Gateway + Speech Understanding</h3>
+            <p>Every finished conversation is analyzed through AssemblyAI's LLM Gateway: structured summary, sentiment, intent, action items, and a "needs human" flag — returned as strict JSON.</p>
+          </div>
+        </div>
+        <div class="tech">
+          <div class="icon">🗂️</div>
+          <div>
+            <h3>Session History &amp; recordings</h3>
+            <p>The dashboard links each call to its AssemblyAI session record — recording, conversation timeline, and metadata artifacts — for compliance, coaching, and QA.</p>
+          </div>
+        </div>
+        <div class="tech">
+          <div class="icon">🔐</div>
+          <div>
+            <h3>Stored agents + one-time tokens</h3>
+            <p>Each business gets a reusable agent registered via the Agents REST API. Browsers connect with short-lived temporary tokens, so the API key never leaves the server.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="value">
+      <div class="head">
+        <h2>Why this is a business, not a toy</h2>
+        <p>Missed calls are a measured, painful, recurring leak in SMB revenue. RingBack plugs it with no new headcount.</p>
+      </div>
+      <div class="value-cards">
+        <div class="value"><b>33M</b><span>US small businesses — the single largest voice-first market. ~15M are appointment- or job-dependent and miss calls daily.</span></div>
+        <div class="value"><b>$4K/mo</b><span>a shop that avoids 30 missed calls a month at $125 each saves ~$3,750. RingBack costs $49–$99/location/month.</span></div>
+        <div class="value"><b>Can't be built</b><span>without modern voice AI: human-level call transcription, tool calling, and post-call intelligence simply didn't exist pre-foundation-models.</span></div>
+      </div>
+      <div style="text-align:center;margin-top:34px">
+        <a class="btn btn-primary" href="/demo">&#128222; Watch it recover a call</a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="cta-band">
+        <h2>Hear it work. You talk, it books.</h2>
+        <p>Open the demo, pick a missed call, and speak the caller's line. RingBack calls back, books the appointment, and the owner dashboard fills in live.</p>
+        <a class="btn btn-primary" href="/demo">Launch live demo</a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>RingBack AI · AssemblyAI Voice Agent Hackathon (Sept 1–30, 2026)</span>
+      <span>AssemblyAI stack: Voice Agent API · LLM Gateway · Session History</span>
+    </footer>
+  </div>
+</body>
+</html>
