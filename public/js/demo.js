@@ -188,9 +188,11 @@
       const biz = state.config.businesses.find((b) => b.id === call.business_id);
       if (biz && !biz.agent_ready) renderBusinessCard(state.scenario);
 
+      state.token = t.token;
       state.ws = new WebSocket(WS_URL + encodeURIComponent(t.token));
-      wireWs(state.ws, call, t.agent_id);
-      state.startedAt = Date.now();
+      state.inlineSession = t.inline_session || null;
+      state.usedInline = false;
+      openSocket(call, t.agent_id);
       hideOverlay();
     } catch (e) {
       hideOverlay();
@@ -201,9 +203,16 @@
     }
   }
 
-  function wireWs(ws, call, agentId) {
+  function openSocket(call, agentId, useInline = false) {
+    state.ws = new WebSocket(WS_URL + encodeURIComponent(state.token));
+    wireWs(state.ws, call, agentId, useInline);
+    state.startedAt = Date.now();
+  }
+
+  function wireWs(ws, call, agentId, useInline = false) {
     ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "session.update", session: { agent_id: agentId } }));
+      const session = useInline && state.inlineSession ? Object.assign({}, state.inlineSession) : { agent_id: agentId };
+      ws.send(JSON.stringify({ type: "session.update", session }));
     };
     ws.onmessage = (ev) => {
       let m;
@@ -248,6 +257,13 @@
         break;
 
       case "session.error":
+        const errCode = m.error && m.error.code;
+        if (errCode === "agent_not_found" && state.inlineSession && !state.usedInline) {
+          state.usedInline = true;
+          try { if (state.ws) state.ws.close(); } catch (_e) { /* */ }
+          openSocket(state.call, null, true);
+          return;
+        }
         showOverlay("Session error", esc((m.error && m.error.message) || JSON.stringify(m)));
         setStatus("error");
         break;

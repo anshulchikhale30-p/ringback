@@ -327,6 +327,17 @@ class TokenIn(BaseModel):
     business_id: str
 
 
+def _inline_session(business: dict) -> dict:
+    """A full agent definition the browser can send inline in session.update —
+    the fallback when a stored agent id isn't (yet) usable by the WS."""
+    return {
+        "system_prompt": build_system_prompt(business),
+        "input": {"keyterms": DOMAIN_KEYTERMS},
+        "output": {"voice": settings.assemblyai_voice},
+        "tools": business_toolset(business["id"]),
+    }
+
+
 @app.post("/api/token")
 def mint_voice_token(body: TokenIn):
     """Mint a one-time temporary token so the browser can open the Voice Agent
@@ -346,6 +357,7 @@ def mint_voice_token(body: TokenIn):
     return {
         "token": token,
         "agent_id": business.get("agent_id"),
+        "inline_session": _inline_session(business),
         "expires_in_seconds": settings.token_ttl_seconds,
         "max_session_duration_seconds": settings.max_session_seconds,
     }
