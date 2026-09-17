@@ -177,7 +177,15 @@ def provision_agent(business: dict, force: bool = False) -> dict:
         keyterms=DOMAIN_KEYTERMS,
         tools=tools,
     )
-    return store.upsert_business({**business, "agent_id": agent["id"]})
+    # Newly created agents can take a few seconds to become usable by a WS
+    # session; confirm propagation before we hand an agent_id to the browser.
+    for _ in range(5):
+        try:
+            aai.get_agent(agent["id"])
+            break
+        except Exception:
+            time.sleep(2)
+    return store.upsert_business({**business, "agent_id": agent["id"], "provision_error": None})
 
 
 def seed_demo_data() -> None:

@@ -79,7 +79,16 @@ def create_agent(
     )
     if not _auth_ok(resp):
         raise RuntimeError(f"create_agent failed: {resp.status_code} {resp.text[:400]}")
-    return resp.json()
+    data = resp.json()
+    aid = (
+        data.get("id")
+        or data.get("agent_id")
+        or (data.get("agent", {}) or {}).get("id")
+    )
+    if not aid:
+        raise RuntimeError(f"create_agent: no agent id in response: {resp.text[:400]}")
+    data["id"] = aid
+    return data
 
 
 def update_agent(agent_id: str, **fields: Any) -> dict:
@@ -100,7 +109,11 @@ def get_agent(agent_id: str) -> dict:
         headers=_headers(),
         timeout=30,
     )
-    return resp.json()
+    if not _auth_ok(resp):
+        raise RuntimeError(f"get_agent failed: {resp.status_code} {resp.text[:400]}")
+    data = resp.json()
+    data["id"] = data.get("id") or data.get("agent_id") or agent_id
+    return data
 
 
 def list_agents() -> list[dict]:
