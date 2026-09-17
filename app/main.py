@@ -405,6 +405,23 @@ def answer_call(call_id: str):
     return call
 
 
+class WsErrorIn(BaseModel):
+    mode: str = Field(default="", max_length=20)
+    code: str = Field(default="", max_length=60)
+    message: str = Field(default="", max_length=400)
+
+
+@app.post("/api/calls/{call_id}/ws-error")
+def call_ws_error(call_id: str, body: WsErrorIn):
+    """Log a WebSocket session/error event from the demo client onto the call
+    record so failures can be diagnosed without console access."""
+    call = store.get_call(call_id)
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    store.add_call_event(call_id, "note", f"WS [{body.mode or '?'}] {body.code or 'error'}", (body.message or "")[:200])
+    return {"ok": True}
+
+
 class TranscriptIn(BaseModel):
     transcript: list[dict] = Field(default_factory=list)
     aa_session_id: str = Field(default="", max_length=120)

@@ -192,6 +192,7 @@
       state.agentId = t.agent_id || null;
       state.inlineSession = t.inline_session || null;
       state.triedStored = false;
+      state.wsErrors = [];
       openSocket(call, state.agentId, true);
       hideOverlay();
     } catch (e) {
@@ -204,9 +205,20 @@
   }
 
   function openSocket(call, agentId, useInline = false) {
+    state.attemptMode = useInline ? "inline" : "stored";
     state.ws = new WebSocket(WS_URL + encodeURIComponent(state.token));
     wireWs(state.ws, call, agentId, useInline);
     state.startedAt = Date.now();
+  }
+
+  async function reportWsError(call, code, message) {
+    try {
+      await api("/api/calls/" + call.id + "/ws-error", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: state.attemptMode || "?", code: code || "", message: message || "" }),
+      });
+    } catch (_e) { /* best effort */ }
   }
 
   function wireWs(ws, call, agentId, useInline = false) {
@@ -257,13 +269,17 @@
         break;
 
       case "session.error":
+        const errMsg = (m.error && (m.error.message || m.error.code)) || JSON.stringify(m);
+        state.wsErrors.push({ mode: state.attemptMode || "?", error: errMsg });
+        reportWsError(call, (m.error && m.error.code) || "session.error", (m.error && m.error.message) || errMsg);
         if (state.agentId && !state.triedStored) {
           state.triedStored = true;
           try { if (state.ws) state.ws.close(); } catch (_e) { /* */ }
           openSocket(state.call, state.agentId, false);
           return;
         }
-        showOverlay("Session error", esc((m.error && m.error.message) || JSON.stringify(m)));
+        const trail = state.wsErrors.map((e) => "[" + e.mode + "] " + e.error).join("\n");
+        showOverlay("Session error", esc(trail));
         setStatus("error");
         break;
 
